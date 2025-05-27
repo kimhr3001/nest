@@ -1,0 +1,33 @@
+NestJS API 문서
+
+## API 테스트 방법
+
+### 1. 테스트용 사용자 생성
+1. \`/users/test\` 엔드포인트로 이동
+2. Execute 버튼 클릭
+3. Response에서 생성된 사용자 정보 확인
+   - email: test@example.com
+   - password: test1234
+
+### 2. 로그인하여 토큰 받기
+1. \`/auth/login\` 엔드포인트로 이동
+2. Request body에 다음 정보 입력:
+   - email: test@example.com
+   - password: test1234
+3. Execute 버튼 클릭
+4. Response에서 access_token 복사
+
+### 3. 토큰 인증 설정
+1. Swagger UI 상단의 "Authorize" 버튼 클릭
+2. Value 입력란에 "Bearer " + access_token 입력 (예: "Bearer eyJhbGciOiJIUzI1...")
+3. Authorize 버튼 클릭
+
+### 4. 보호된 API 테스트
+1. 이제 보호된 엔드포인트(\`/users/:id\` 등)를 테스트할 수 있습니다.
+2. 토큰이 자동으로 요청 헤더에 포함됩니다.
+
+### 주의사항
+- 토큰은 1시간 동안만 유효합니다.
+- 토큰이 만료되면 다시 로그인하여 새로운 토큰을 발급받아야 합니다.
+- 로그인 엔드포인트는 토큰이 필요하지 않습니다.
+- 테스트용 사용자 생성 API는 인증이 필요하지 않습니다.
