@@ -20,11 +20,11 @@ export class UsersService {
     return await this.usersRepository.save(user);
   }
 
-  async findByEmail(email: string): Promise<User | null> {
+  async getByEmail(email: string): Promise<User | null> {
     return await this.usersRepository.findOne({ where: { email } });
   }
 
-  async findById(id: number): Promise<User | null> {
+  async getById(id: number): Promise<User | null> {
     return await this.usersRepository.findOne({ where: { id } });
   }
   // 이메일 중복 체크

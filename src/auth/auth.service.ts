@@ -24,7 +24,7 @@ export class AuthService {
     email: string,
     password: string,
   ): Promise<{ email: string; id: number } | null> {
-    const user = await this.usersService.findByEmail(email);
+    const user = await this.usersService.getByEmail(email);
     if (user && (await bcrypt.compare(password, user.password))) {
       return { email: user.email, id: user.id };
     }
@@ -59,7 +59,7 @@ export class AuthService {
         HttpStatus.UNAUTHORIZED,
       );
     }
-    const user = await this.usersService.findById(parsedData.userId);
+    const user = await this.usersService.getById(parsedData.userId);
     if (!user) {
       throw new HttpException(
         '사용자를 찾을 수 없습니다.',
@@ -72,7 +72,7 @@ export class AuthService {
   async login(
     loginDto: LoginDto,
   ): Promise<ApiResponse<{ accessToken: string; refreshToken: string }>> {
-    const user = await this.usersService.findByEmail(loginDto.email);
+    const user = await this.usersService.getByEmail(loginDto.email);
     if (!user) {
       throw new HttpException(
         '이메일 또는 비밀번호가 일치하지 않습니다.',

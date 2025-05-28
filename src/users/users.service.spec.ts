@@ -83,12 +83,12 @@ describe('UsersService', () => {
     });
   });
 
-  describe('findByEmail', () => {
+  describe('getByEmail', () => {
     it('should find a user by email', async () => {
       const email = 'test@example.com';
       mockRepository.findOne.mockResolvedValue(mockUser);
 
-      const result = await service.findByEmail(email);
+      const result = await service.getByEmail(email);
 
       expect(mockRepository.findOne).toHaveBeenCalledWith({
         where: { email },
@@ -100,18 +100,18 @@ describe('UsersService', () => {
       const email = 'nonexistent@example.com';
       mockRepository.findOne.mockResolvedValue(null);
 
-      const result = await service.findByEmail(email);
+      const result = await service.getByEmail(email);
 
       expect(result).toBeNull();
     });
   });
 
-  describe('findById', () => {
+  describe('getById', () => {
     it('should find a user by id', async () => {
       const id = 1;
       mockRepository.findOne.mockResolvedValue(mockUser);
 
-      const result = await service.findById(id);
+      const result = await service.getById(id);
 
       expect(mockRepository.findOne).toHaveBeenCalledWith({
         where: { id },
@@ -123,7 +123,7 @@ describe('UsersService', () => {
       const id = 999;
       mockRepository.findOne.mockResolvedValue(null);
 
-      const result = await service.findById(id);
+      const result = await service.getById(id);
 
       expect(result).toBeNull();
     });

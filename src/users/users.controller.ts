@@ -55,7 +55,7 @@ export class UsersController {
   ): Promise<ApiResponse<Omit<User, 'password'>>> {
     const userId = parseInt(id, 10);
 
-    const user = await this.usersService.findById(userId);
+    const user = await this.usersService.getById(userId);
     if (!user) {
       throw new HttpException(
         '사용자를 찾을 수 없습니다.',
