@@ -44,7 +44,21 @@ async function bootstrap() {
     )
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, document);
+  // const customCss = `.swagger-ui .opblock-body { display: flex; flex-direction: row; } .swagger-ui .opblock-body .parameters-container { flex: 1; } .swagger-ui .opblock-body .responses-wrapper { flex: 1; }`
+  SwaggerModule.setup('docs', app, document, {
+    customCss: '',
+    customSiteTitle: 'API Documentation',
+    customfavIcon: '/favicon.ico',
+    swaggerOptions: {
+      persistAuthorization: true,
+      displayRequestDuration: true,
+      docExpansion: 'none',
+      filter: true,
+      showExtensions: true,
+      showCommonExtensions: true,
+      layout: 'StandaloneLayout',
+    },
+  });
 
   await app.listen(process.env.PORT ?? 3000);
   logger.log(`DB_HOST: ${configService.get('DB_HOST')}`);
