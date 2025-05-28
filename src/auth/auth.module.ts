@@ -1,29 +1,16 @@
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-import { UsersModule } from '../users/users.module';
-import { JwtStrategy } from './strategies/jwt.strategy';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RedisModule } from '../libs/redis';
+import { UsersModule } from '../users/users.module';
+import { ConfigModule } from '@nestjs/config';
+import { RedisAuthGuard } from './guards/redis-auth.guard';
 
 @Module({
-  imports: [
-    UsersModule,
-    PassportModule,
-    RedisModule,
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        secret: config.get<string>('JWT_SECRET', ''),
-        signOptions: { expiresIn: '1h' },
-      }),
-    }),
-  ],
-  providers: [AuthService, JwtStrategy],
+  imports: [PassportModule, UsersModule, ConfigModule, RedisModule],
+  providers: [AuthService, RedisAuthGuard],
   controllers: [AuthController],
-  exports: [AuthService],
+  exports: [AuthService, RedisAuthGuard],
 })
 export class AuthModule {}

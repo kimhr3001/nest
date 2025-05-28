@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
 import { ApiResponse } from '../common/interfaces/api-response.interface';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RedisAuthGuard } from '../auth/guards/redis-auth.guard';
 import {
   ApiTags,
   ApiOperation,
@@ -10,13 +10,14 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { CreateUserDto } from './dto/create-user.dto';
+import { HttpException, HttpStatus } from '@nestjs/common';
 
 @ApiTags('users')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(RedisAuthGuard)
   @ApiBearerAuth('access-token')
   @Post()
   @ApiOperation({
@@ -33,15 +34,11 @@ export class UsersController {
   ): Promise<ApiResponse<User>> {
     await this.usersService.checkEmailDuplication(createUserDto.email);
 
-    const user = await this.usersService.create(
-      createUserDto.email,
-      createUserDto.password,
-      createUserDto.name,
-    );
+    const user = await this.usersService.create(createUserDto);
     return { data: user };
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(RedisAuthGuard)
   @ApiBearerAuth('access-token')
   @Get(':id')
   @ApiOperation({
@@ -60,7 +57,10 @@ export class UsersController {
 
     const user = await this.usersService.findById(userId);
     if (!user) {
-      throw new Error('사용자를 찾을 수 없습니다.');
+      throw new HttpException(
+        '사용자를 찾을 수 없습니다.',
+        HttpStatus.NOT_FOUND,
+      );
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -81,11 +81,24 @@ export class UsersController {
   })
   async createTestUser(): Promise<ApiResponse<User>> {
     await this.usersService.checkEmailDuplication('test@example.com');
-    const testUser = await this.usersService.create(
-      'test@example.com',
-      'test1234',
-      '테스트 사용자',
-    );
+    const testUserData = {
+      type: 'USER',
+      state: 'NORMAL',
+      email: 'test@example.com',
+      password: 'test1234',
+      name: '테스트 사용자',
+      extras: {
+        phone: '01012345678',
+        address: [
+          {
+            type: 'DEFAULT',
+            address: '서울시 강남구 역삼동',
+            detail: '101동 101호',
+          },
+        ],
+      },
+    } as unknown as CreateUserDto;
+    const testUser = await this.usersService.create(testUserData);
     return { data: testUser };
   }
 }

@@ -1,6 +1,6 @@
 import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LoginDto } from './dto/login.dto';
+import { LoginDto, LoginResponseDto, RefreshTokenDto } from './dto';
 import { ApiResponse } from '../common/interfaces/api-response.interface';
 import { Throttle } from '@nestjs/throttler';
 import {
@@ -24,24 +24,23 @@ export class AuthController {
   @SwaggerApiResponse({
     status: 200,
     description: '로그인이 성공적으로 완료되었습니다.',
-    schema: {
-      type: 'object',
-      properties: {
-        data: {
-          type: 'object',
-          properties: {
-            access_token: {
-              type: 'string',
-              example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
-            },
-          },
-        },
-      },
-    },
+    type: LoginResponseDto,
   })
   async login(
     @Body() loginDto: LoginDto,
   ): Promise<ApiResponse<{ accessToken: string; refreshToken: string }>> {
     return await this.authService.login(loginDto);
+  }
+
+  @Post('refresh-token')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: '리프레시 토큰 갱신',
+    description: '리프레시 토큰을 갱신합니다.',
+  })
+  async refreshToken(@Body() refreshTokenDto: RefreshTokenDto): Promise<any> {
+    const refreshToken = refreshTokenDto.refreshToken;
+    const userId = refreshTokenDto.userId;
+    return await this.authService.refreshToken(userId, refreshToken);
   }
 }

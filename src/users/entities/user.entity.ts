@@ -18,6 +18,20 @@ export class User {
   id: number;
 
   @ApiProperty({
+    description: '사용자 타입',
+    example: 'USER',
+  })
+  @Column()
+  type: string;
+
+  @ApiProperty({
+    description: '사용자 상태',
+    example: 'NORMAL',
+  })
+  @Column()
+  state: string;
+
+  @ApiProperty({
     description: '사용자 이메일',
     example: 'test@example.com',
   })
@@ -39,6 +53,22 @@ export class User {
   })
   @Column()
   name: string;
+
+  @ApiProperty({
+    description: '사용자 추가 정보',
+    example: {
+      phone: '01012345678',
+      address: [
+        {
+          type: 'DEFAULT',
+          address: '서울시 강남구 역삼동',
+          detail: '101동 101호',
+        },
+      ],
+    },
+  })
+  @Column({ type: 'json' })
+  extras: JSON;
 
   @ApiProperty({
     description: '생성일',

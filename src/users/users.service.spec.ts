@@ -5,6 +5,7 @@ import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
 import { HttpException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
+import { CreateUserDto } from './dto/create-user.dto';
 
 describe('UsersService', () => {
   let service: UsersService;
@@ -13,9 +14,14 @@ describe('UsersService', () => {
 
   const mockUser = {
     id: 1,
+    type: 'USER',
+    state: 'NORMAL',
     email: 'test@example.com',
     password: 'hashedPassword',
     name: 'Test User',
+    extras: JSON.parse(
+      '{"phone": "01012345678", "address": [{"type": "DEFAULT", "address": "서울시 강남구 역삼동", "detail": "101동 101호"}]}',
+    ) as JSON,
   };
 
   const mockRepository = {
@@ -37,6 +43,8 @@ describe('UsersService', () => {
 
     service = module.get<UsersService>(UsersService);
     repository = module.get<Repository<User>>(getRepositoryToken(User));
+
+    jest.spyOn(bcrypt, 'hash').mockResolvedValue('hashedPassword' as never);
   });
 
   afterEach(() => {
@@ -45,27 +53,30 @@ describe('UsersService', () => {
 
   describe('create', () => {
     it('should create a new user successfully', async () => {
-      const createUserDto = {
+      const plainPassword = 'password123';
+      const createUserDto: CreateUserDto = {
+        type: 'USER',
+        state: 'NORMAL',
         email: 'test@example.com',
-        password: 'password123',
+        password: plainPassword,
         name: 'Test User',
+        extras: JSON.parse(
+          '{"phone": "01012345678", "address": [{"type": "DEFAULT", "address": "서울시 강남구 역삼동", "detail": "101동 101호"}]}',
+        ) as JSON,
       };
 
-      jest.spyOn(bcrypt, 'hash').mockResolvedValue('hashedPassword' as never);
-      mockRepository.create.mockReturnValue(mockUser);
+      mockRepository.create.mockReturnValue({
+        ...createUserDto,
+        password: 'hashedPassword',
+      });
       mockRepository.save.mockResolvedValue(mockUser);
 
-      const result = await service.create(
-        createUserDto.email,
-        createUserDto.password,
-        createUserDto.name,
-      );
+      const result = await service.create(createUserDto);
 
-      expect(bcrypt.hash).toHaveBeenCalledWith(createUserDto.password, 10);
+      expect(bcrypt.hash).toHaveBeenCalledWith(plainPassword, 10);
       expect(mockRepository.create).toHaveBeenCalledWith({
-        email: createUserDto.email,
+        ...createUserDto,
         password: 'hashedPassword',
-        name: createUserDto.name,
       });
       expect(mockRepository.save).toHaveBeenCalled();
       expect(result).toEqual(mockUser);
