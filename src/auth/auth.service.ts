@@ -6,12 +6,7 @@ import { LoginDto } from './dto/login.dto';
 import { ApiResponse } from '../common/interfaces/api-response.interface';
 import { RedisService } from '../libs/redis';
 import { ConfigService } from '@nestjs/config';
-
-interface TokenData {
-  access_token: string;
-  user_id: number;
-  email: string;
-}
+import { TokenPolicy, TokenData } from '../policy';
 
 @Injectable()
 export class AuthService {
@@ -35,7 +30,7 @@ export class AuthService {
 
   async login(
     loginDto: LoginDto,
-  ): Promise<ApiResponse<{ access_token: string }>> {
+  ): Promise<ApiResponse<{ accessToken: string; refreshToken: string }>> {
     const user = await this.usersService.findByEmail(loginDto.email);
 
     if (!user) {
@@ -58,22 +53,55 @@ export class AuthService {
         details: '비밀번호가 일치하지 않습니다.',
       });
     }
+    const { accessToken, refreshToken } = await this.setToken(user);
+    return {
+      data: { accessToken, refreshToken },
+    };
+  }
+  private async setToken(user: { id: number; email: string }) {
+    const { ACCESS_TOKEN, REFRESH_TOKEN } = TokenPolicy;
 
     const payload = { sub: user.id, email: user.email };
-    const access_token = await this.jwtService.signAsync(payload);
+
+    const [accessToken, refreshToken] = await Promise.all([
+      this.jwtService.signAsync(payload, {
+        expiresIn: ACCESS_TOKEN.EXPIRES_IN,
+      }),
+      this.jwtService.signAsync(payload, {
+        expiresIn: REFRESH_TOKEN.EXPIRES_IN,
+      }),
+    ]);
 
     // Redis에 토큰 저장
     const redisPrefix = this.configService.get<string>('REDIS_PREFIX', 'local');
-    const tokenKey = `${redisPrefix}:${user.id}`;
-    const value = JSON.stringify({
-      access_token,
-      user_id: user.id,
+
+    const accessTokenKey = `${redisPrefix}:${ACCESS_TOKEN.REDIS_PREFIX}:${user.id}`;
+    const refreshTokenKey = `${redisPrefix}:${REFRESH_TOKEN.REDIS_PREFIX}:${user.id}`;
+
+    const value = {
+      userId: user.id,
       email: user.email,
-    });
-    await this.redisService.set(tokenKey, value, 60 * 60); // 1시간
-    return {
-      data: { access_token },
     };
+
+    await Promise.all([
+      this.redisService.set(
+        accessTokenKey,
+        JSON.stringify({ ...value, accessToken }),
+        ACCESS_TOKEN.EXPIRES_IN,
+      ),
+      this.redisService.set(
+        refreshTokenKey,
+        JSON.stringify({ ...value, refreshToken }),
+        REFRESH_TOKEN.EXPIRES_IN,
+      ),
+    ]);
+
+    const at = await this.redisService.get(accessTokenKey);
+    const rt = await this.redisService.get(refreshTokenKey);
+
+    console.log('tokens::', { at, rt });
+
+    return { accessToken, refreshToken };
   }
 
   async validateToken(userId: number, token: string): Promise<boolean> {
@@ -82,7 +110,7 @@ export class AuthService {
         'REDIS_PREFIX',
         'local',
       );
-      const tokenKey = `${redisPrefix}:${userId}`;
+      const tokenKey = `${redisPrefix}:${TokenPolicy.ACCESS_TOKEN.REDIS_PREFIX}:${userId}`;
       const storedTokenData = await this.redisService.get(tokenKey);
 
       if (!storedTokenData) {

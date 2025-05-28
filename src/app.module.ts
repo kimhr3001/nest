@@ -7,6 +7,7 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { RedisModule } from './libs/redis/module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { APP_GUARD } from '@nestjs/core';
     }),
     UsersModule,
     AuthModule,
+    RedisModule,
   ],
   controllers: [AppController],
   providers: [

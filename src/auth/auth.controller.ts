@@ -41,11 +41,7 @@ export class AuthController {
   })
   async login(
     @Body() loginDto: LoginDto,
-  ): Promise<ApiResponse<{ access_token: string }>> {
-    console.log('Login DTO:', {
-      email: loginDto.email,
-      password: '[REDACTED]', // 보안을 위해 비밀번호는 마스킹
-    });
+  ): Promise<ApiResponse<{ accessToken: string; refreshToken: string }>> {
     return await this.authService.login(loginDto);
   }
 }
