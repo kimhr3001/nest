@@ -4,7 +4,7 @@ import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
 import { ApiResponse } from '../common/interfaces/api-response.interface';
-import { RedisService } from '../libs/redis/redis.service';
+import { RedisService } from '../libs/redis/service';
 import { ConfigService } from '@nestjs/config';
 
 interface TokenData {

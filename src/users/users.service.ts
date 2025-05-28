@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
+import { HttpException, HttpStatus } from '@nestjs/common';
 
 @Injectable()
 export class UsersService {
@@ -27,5 +28,18 @@ export class UsersService {
 
   async findById(id: number): Promise<User | null> {
     return await this.usersRepository.findOne({ where: { id } });
+  }
+  // 이메일 중복 체크
+  async checkEmailDuplication(email: string): Promise<void> {
+    const existingUser = await this.usersRepository.findOne({
+      where: { email },
+    });
+    // 이메일 중복 체크
+    if (existingUser) {
+      throw new HttpException(
+        '이미 존재하는 이메일입니다.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 }

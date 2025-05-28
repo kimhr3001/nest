@@ -31,6 +31,8 @@ export class UsersController {
   async create(
     @Body() createUserDto: CreateUserDto,
   ): Promise<ApiResponse<User>> {
+    await this.usersService.checkEmailDuplication(createUserDto.email);
+
     const user = await this.usersService.create(
       createUserDto.email,
       createUserDto.password,
@@ -54,11 +56,7 @@ export class UsersController {
   async findOne(
     @Param('id') id: string,
   ): Promise<ApiResponse<Omit<User, 'password'>>> {
-    console.log('findOne', id);
     const userId = parseInt(id, 10);
-    if (isNaN(userId)) {
-      throw new Error('유효하지 않은 사용자 ID입니다.');
-    }
 
     const user = await this.usersService.findById(userId);
     if (!user) {
@@ -82,6 +80,7 @@ export class UsersController {
     type: User,
   })
   async createTestUser(): Promise<ApiResponse<User>> {
+    await this.usersService.checkEmailDuplication('test@example.com');
     const testUser = await this.usersService.create(
       'test@example.com',
       'test1234',
