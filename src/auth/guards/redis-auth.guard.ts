@@ -8,7 +8,7 @@ import {
 import { Request } from 'express';
 import { RedisService } from '../../libs/redis';
 import { ConfigService } from '@nestjs/config';
-import { TokenPolicy } from '../../policy';
+import { TokenPolicy } from '../../common/policy';
 
 @Injectable()
 export class RedisAuthGuard implements CanActivate {

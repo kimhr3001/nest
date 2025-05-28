@@ -9,7 +9,7 @@ import {
   ApiResponse as SwaggerApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { CreateUserDto } from './dto/create-user.dto';
+import { UserDto } from './dto/user.dto';
 import { HttpException, HttpStatus } from '@nestjs/common';
 
 @ApiTags('users')
@@ -29,12 +29,10 @@ export class UsersController {
     description: '사용자가 성공적으로 생성되었습니다.',
     type: User,
   })
-  async create(
-    @Body() createUserDto: CreateUserDto,
-  ): Promise<ApiResponse<User>> {
-    await this.usersService.checkEmailDuplication(createUserDto.email);
+  async create(@Body() UserDto: UserDto): Promise<ApiResponse<User>> {
+    await this.usersService.checkEmailDuplication(UserDto.email);
 
-    const user = await this.usersService.create(createUserDto);
+    const user = await this.usersService.create(UserDto);
     return { data: user };
   }
 
@@ -97,7 +95,7 @@ export class UsersController {
           },
         ],
       },
-    } as unknown as CreateUserDto;
+    } as unknown as UserDto;
     const testUser = await this.usersService.create(testUserData);
     return { data: testUser };
   }

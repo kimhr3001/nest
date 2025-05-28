@@ -5,7 +5,7 @@ import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
 import { HttpException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { CreateUserDto } from './dto/create-user.dto';
+import { UserDto } from './dto/user.dto';
 
 describe('UsersService', () => {
   let service: UsersService;
@@ -54,7 +54,7 @@ describe('UsersService', () => {
   describe('create', () => {
     it('should create a new user successfully', async () => {
       const plainPassword = 'password123';
-      const createUserDto: CreateUserDto = {
+      const UserDto: UserDto = {
         type: 'USER',
         state: 'NORMAL',
         email: 'test@example.com',
@@ -66,16 +66,16 @@ describe('UsersService', () => {
       };
 
       mockRepository.create.mockReturnValue({
-        ...createUserDto,
+        ...UserDto,
         password: 'hashedPassword',
       });
       mockRepository.save.mockResolvedValue(mockUser);
 
-      const result = await service.create(createUserDto);
+      const result = await service.create(UserDto);
 
       expect(bcrypt.hash).toHaveBeenCalledWith(plainPassword, 10);
       expect(mockRepository.create).toHaveBeenCalledWith({
-        ...createUserDto,
+        ...UserDto,
         password: 'hashedPassword',
       });
       expect(mockRepository.save).toHaveBeenCalled();
