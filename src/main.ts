@@ -7,6 +7,8 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Logger } from '@nestjs/common';
+import { GlobalLogInterceptor } from './interceptor/global.log';
+
 const logger = new Logger('Bootstrap');
 
 const getSwaggerDescription = () =>
@@ -59,12 +61,13 @@ async function bootstrap() {
       layout: 'StandaloneLayout',
     },
   });
+  app.useGlobalInterceptors(new GlobalLogInterceptor());
+  await app.listen(process.env.PORT ?? 3000, () => {
+    logger.log(`DB_HOST: ${configService.get('DB_HOST')}`);
+    logger.log(`REDIS_HOST: ${configService.get('REDIS_HOST')}`);
 
-  await app.listen(process.env.PORT ?? 3000);
-  logger.log(`DB_HOST: ${configService.get('DB_HOST')}`);
-  logger.log(`REDIS_HOST: ${configService.get('REDIS_HOST')}`);
-
-  logger.log(`Server is running on port ${process.env.PORT ?? 3000}`);
-  logger.log(`Docs: http://localhost:${process.env.PORT ?? 3000}/docs`);
+    logger.log(`Server is running on port ${process.env.PORT ?? 3000}`);
+    logger.log(`Docs: http://localhost:${process.env.PORT ?? 3000}/docs`);
+  });
 }
 bootstrap();
